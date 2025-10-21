@@ -165,25 +165,60 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
     setIsUploading(true);
     
     try {
-      // Create FormData to send file with timestamps
-      const formData = new FormData();
-      formData.append('file', uploadedFile);
-      formData.append('start_time', segmentStart.toString());
-      formData.append('end_time', segmentEnd.toString());
-      
-      // Call backend API
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${API_URL}/api/upload-audio`, {
+      
+      // Step 1: Request signed upload URL from backend
+      const urlResponse = await fetch(`${API_URL}/api/upload-url`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filename: uploadedFile.name,
+          content_type: uploadedFile.type,
+          file_size: uploadedFile.size,
+        }),
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Upload failed');
+      if (!urlResponse.ok) {
+        const error = await urlResponse.json();
+        throw new Error(error.detail || 'Failed to get upload URL');
       }
       
-      const data = await response.json();
+      const { upload_url, gcs_uri } = await urlResponse.json();
+      
+      // Step 2: Upload file directly to GCS using signed URL
+      const uploadResponse = await fetch(upload_url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': uploadedFile.type,
+        },
+        body: uploadedFile,
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to storage');
+      }
+      
+      // Step 3: Notify backend to process the uploaded file (extract segment if needed)
+      const processResponse = await fetch(`${API_URL}/api/process-upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gcs_uri: gcs_uri,
+          start_time: segmentStart,
+          end_time: segmentEnd,
+        }),
+      });
+      
+      if (!processResponse.ok) {
+        const error = await processResponse.json();
+        throw new Error(error.detail || 'Failed to process upload');
+      }
+      
+      const data = await processResponse.json();
       
       setIsUploading(false);
       setUploadSuccess(true);

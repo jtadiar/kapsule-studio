@@ -120,6 +120,44 @@ class StorageService:
         
         logger.info(f"Downloaded {gcs_url} to {local_path}")
     
+    def generate_signed_upload_url(self, filename: str, content_type: str) -> tuple:
+        """
+        Generate a signed URL for direct upload to GCS.
+        
+        Args:
+            filename: Original filename
+            content_type: MIME type of the file
+            
+        Returns:
+            Tuple of (signed_upload_url, gcs_uri)
+        """
+        # Generate unique filename
+        unique_id = str(uuid.uuid4())
+        safe_filename = f"{unique_id}_{filename}"
+        blob_path = f"{config.AUDIO_FOLDER}{safe_filename}"
+        
+        if self.client is None:
+            # Mock mode
+            mock_url = f"https://storage.googleapis.com/{config.GCS_BUCKET_NAME}/{blob_path}"
+            gcs_uri = f"gs://{config.GCS_BUCKET_NAME}/{blob_path}"
+            logger.info(f"MOCK: Would generate signed upload URL for: {gcs_uri}")
+            return mock_url, gcs_uri
+        
+        blob = self.bucket.blob(blob_path)
+        
+        # Generate signed URL for upload (PUT method)
+        signed_url = blob.generate_signed_url(
+            version="v4",
+            expiration=900,  # 15 minutes
+            method="PUT",
+            content_type=content_type
+        )
+        
+        gcs_uri = f"gs://{config.GCS_BUCKET_NAME}/{blob_path}"
+        logger.info(f"Generated signed upload URL for: {gcs_uri}")
+        
+        return signed_url, gcs_uri
+    
     def get_signed_url(self, gcs_url: str, expiration: int = 3600) -> str:
         """
         Generate a public URL for accessing a GCS object.

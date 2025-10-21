@@ -99,6 +99,26 @@ class PromptPreviewResponse(BaseModel):
     source: str  # 'gemini' | 'rule_fallback'
 
 
+class SignedUploadRequest(BaseModel):
+    """Request for generating signed upload URL."""
+    filename: str
+    content_type: str
+    file_size: int
+
+
+class SignedUploadResponse(BaseModel):
+    """Response with signed upload URL."""
+    upload_url: str
+    gcs_uri: str
+
+
+class ProcessUploadRequest(BaseModel):
+    """Request to process uploaded audio file."""
+    gcs_uri: str
+    start_time: Optional[float] = None
+    end_time: Optional[float] = None
+
+
 class JobStatusResponse(BaseModel):
     """Response model for job status."""
     status: str
@@ -244,6 +264,113 @@ async def preview_prompt(request: PromptPreviewRequest, x_forwarded_for: Optiona
             logger.error(f"Gemini preview failed with exception: {e}", exc_info=True)
 
     return PromptPreviewResponse(enhanced_prompt=base_prompt, source="rule_fallback")
+
+
+@app.post("/api/upload-url", response_model=SignedUploadResponse)
+async def get_upload_url(request: SignedUploadRequest):
+    """
+    Generate a signed URL for direct GCS upload.
+    
+    This allows the frontend to upload large files directly to GCS,
+    bypassing Cloud Run's 32MB request limit.
+    """
+    try:
+        # Validate file type
+        if request.content_type not in config.ALLOWED_AUDIO_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed types: {', '.join(config.ALLOWED_AUDIO_TYPES)}"
+            )
+        
+        # Validate file size
+        if request.file_size > config.MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large. Maximum size: {config.MAX_FILE_SIZE / (1024*1024):.0f}MB"
+            )
+        
+        # Generate signed upload URL
+        upload_url, gcs_uri = storage_service.generate_signed_upload_url(
+            request.filename,
+            request.content_type
+        )
+        
+        return SignedUploadResponse(upload_url=upload_url, gcs_uri=gcs_uri)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating upload URL: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate upload URL: {str(e)}")
+
+
+@app.post("/api/process-upload", response_model=AudioUploadResponse)
+async def process_upload(request: ProcessUploadRequest):
+    """
+    Process an uploaded audio file (extract segment if needed).
+    
+    Called after frontend completes direct GCS upload.
+    """
+    temp_files = []
+    
+    try:
+        logger.info(f"Processing uploaded file: {request.gcs_uri}")
+        
+        # Check if segment extraction is requested
+        if request.start_time is not None and request.end_time is not None:
+            duration = request.end_time - request.start_time
+            logger.info(f"Extracting segment from {request.start_time}s to {request.end_time}s (duration: {duration}s)")
+            
+            # Download original file
+            temp_input = f"/tmp/upload_{uuid4()}.mp3"
+            temp_files.append(temp_input)
+            storage_service.download_file(request.gcs_uri, temp_input)
+            
+            # Create temp output file for extracted segment
+            temp_output = f"/tmp/segment_{uuid4()}.mp3"
+            temp_files.append(temp_output)
+            
+            # Use FFmpeg to extract segment
+            try:
+                subprocess.run([
+                    'ffmpeg',
+                    '-i', temp_input,
+                    '-ss', str(request.start_time),
+                    '-t', str(duration),
+                    '-c', 'copy',
+                    '-y', temp_output
+                ], check=True, capture_output=True)
+                
+                logger.info(f"Successfully extracted {duration}s segment")
+                
+                # Upload extracted segment to audio folder
+                segment_filename = f"segment_{uuid4()}.mp3"
+                blob_path = f"{config.AUDIO_FOLDER}{segment_filename}"
+                segment_gcs_uri = storage_service.upload_video(temp_output, segment_filename)
+                
+                return AudioUploadResponse(audio_url=segment_gcs_uri)
+                
+            except subprocess.CalledProcessError as e:
+                logger.error(f"FFmpeg error: {e.stderr.decode() if e.stderr else str(e)}")
+                raise HTTPException(status_code=500, detail="Failed to extract audio segment")
+        else:
+            # No extraction needed, return original GCS URI
+            logger.info(f"No segment extraction needed, using original file")
+            return AudioUploadResponse(audio_url=request.gcs_uri)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing upload: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+    finally:
+        # Clean up temporary files
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except Exception as e:
+                logger.warning(f"Failed to delete temp file {temp_file}: {str(e)}")
 
 
 @app.post("/api/upload-audio", response_model=AudioUploadResponse)

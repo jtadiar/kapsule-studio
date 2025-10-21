@@ -13,15 +13,15 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
        │
        ▼
 ┌─────────────────────────────────┐
-│  Cloud Run: Frontend Service    │
-│  (React + Vite + Nginx)         │
-│  Port: 8080                     │
-└────────────┬────────────────────┘
-             │ HTTP/REST
-             ▼
+│  Netlify: Frontend (Static)     │
+│  (React + Vite)                 │
+│  studio.kapsule.co              │
+└────────┬────────────────────────┘
+         │ HTTP/REST
+         ▼
 ┌─────────────────────────────────┐
 │  Cloud Run: Backend API Service │
-│  (FastAPI + Python)             │
+│  (FastAPI + Python + FFmpeg)    │
 │  Port: 8080                     │
 └─────┬───────┬───────┬──────────┘
       │       │       │
@@ -29,14 +29,21 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
    ┌────┐  ┌────┐  ┌────────┐
    │GCS │  │Veo │  │Firestore│
    └────┘  └────┘  └────────┘
+      ▲
+      │ Direct Upload (Signed URL)
+      │
+   ┌──────┐
+   │ User │
+   └──────┘
 ```
 
 ## Technology Stack
 
-- **Cloud Run Services**: Serverless container deployment
+- **Netlify**: Frontend hosting with CDN
+- **Cloud Run**: Serverless backend API deployment
 - **Veo 3.0**: AI video generation
 - **Gemini 2.5 Flash**: Prompt enhancement
-- **Cloud Storage**: Audio/video file storage
+- **Cloud Storage**: Audio/video file storage (with signed URL uploads)
 - **Firestore**: Job status tracking
 - **FFmpeg**: Audio/video processing
 - **Secret Manager**: Secure configuration
