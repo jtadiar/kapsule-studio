@@ -148,13 +148,19 @@ https://studio.kapsule.co
 
 ### Test Workflow:
 1. Visit your site
-2. Upload an audio file (at least 15 seconds)
-3. Select a 15-second segment
-4. Customize video options
-5. Click "Preview Enhanced Prompt" (optional)
-6. Click "Generate Video"
-7. Wait for processing (2-5 minutes)
-8. Download the result
+2. Upload an audio file (any size, 50MB+ supported)
+3. Select a 15-second segment with draggable markers
+4. Click "Upload Track" (uploads only the 15s segment, ~2-5MB)
+5. Customize video options
+6. Click "Preview Enhanced Prompt" (optional)
+7. Click "Generate Video"
+8. Wait for processing (2-5 minutes)
+9. Download the result
+
+### Verify Correct Upload Flow:
+Open browser DevTools → Network tab during upload:
+- ✅ **Correct**: `POST {API_URL}/api/upload-audio` with ~2-5MB payload
+- ❌ **Wrong**: `PUT storage.googleapis.com/...` (old flow, clear cache and redeploy)
 
 ---
 
@@ -196,6 +202,11 @@ cd /Users/jt/Documents/apps/kapsule-studio/kapsule-studio-frontend
 npm run build
 netlify deploy --prod --dir=dist
 ```
+
+**Important:** If you're seeing old code behavior (e.g., uploads to storage.googleapis.com):
+1. In Netlify dashboard: **Deploys** → **Trigger deploy** → **Clear cache and deploy site**
+2. Hard refresh your browser: **Cmd+Shift+R** (Mac) or **Ctrl+Shift+R** (Windows/Linux)
+3. Verify the Network tab shows POST to `/api/upload-audio`
 
 ---
 

@@ -14,10 +14,11 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
        ▼
 ┌─────────────────────────────────┐
 │  Netlify: Frontend (Static)     │
-│  (React + Vite)                 │
+│  (React + Vite + Web Audio API) │
 │  studio.kapsule.co              │
+│  - Extracts 15s segment         │
 └────────┬────────────────────────┘
-         │ HTTP/REST
+         │ HTTP/REST (2-5MB segment)
          ▼
 ┌─────────────────────────────────┐
 │  Cloud Run: Backend API Service │
@@ -29,37 +30,34 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
    ┌────┐  ┌────┐  ┌────────┐
    │GCS │  │Veo │  │Firestore│
    └────┘  └────┘  └────────┘
-      ▲
-      │ Direct Upload (Signed URL)
-      │
-   ┌──────┐
-   │ User │
-   └──────┘
 ```
 
 ## Technology Stack
 
 - **Netlify**: Frontend hosting with CDN
 - **Cloud Run**: Serverless backend API deployment
+- **Web Audio API**: Browser-side audio segment extraction
 - **Veo 3.0**: AI video generation
 - **Gemini 2.5 Flash**: Prompt enhancement
-- **Cloud Storage**: Audio/video file storage (with signed URL uploads)
+- **Cloud Storage**: Audio/video file storage
 - **Firestore**: Job status tracking
-- **FFmpeg**: Audio/video processing
+- **FFmpeg**: Audio/video processing and looping
 - **Secret Manager**: Secure configuration
 
 ## Data Flow
 
-1. User uploads audio via frontend
-2. Frontend sends to backend API
-3. Backend stores audio in GCS
-4. Backend generates enhanced prompt using Gemini
-5. Backend calls Veo 3.0 for video generation
-6. Backend downloads video from GCS
-7. Backend merges audio + video with FFmpeg
-8. Backend uploads final video to GCS
-9. Frontend polls for completion
-10. User downloads final video
+1. User uploads audio file (any size, e.g., 50MB+) in browser
+2. User selects 15-second segment with interactive timeline
+3. Frontend extracts segment using Web Audio API (~2-5MB)
+4. Frontend uploads only the segment via `POST /api/upload-audio`
+5. Backend stores segment in GCS
+6. Backend generates enhanced prompt (optionally using Gemini 2.5)
+7. Backend calls Veo 3.0 for 9:16 video generation
+8. Backend downloads generated video from GCS
+9. Backend merges and loops video with audio using FFmpeg
+10. Backend uploads final video to GCS
+11. Frontend polls for completion via `/api/result/{job_id}`
+12. User downloads final video
 
 ## Security
 

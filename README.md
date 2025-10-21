@@ -61,13 +61,15 @@ User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
 
 ## How It Works
 
-1. **Upload Audio** - User uploads MP3/WAV/M4A file (min 15 seconds)
+1. **Upload Audio** - User uploads MP3/WAV/M4A file (any size, 50MB+ supported)
 2. **Select Segment** - Interactive timeline with draggable markers for 15-second selection
-3. **Customize Style** - Choose from 19 subjects, 6 visual styles, 8 camera movements, 6 lighting styles
-4. **AI Enhancement** - Gemini 2.5 Flash enhances the prompt with cinematic details
-5. **Generate Video** - Veo 3.0 creates 9:16 portrait video (2-5 minutes processing)
-6. **Process & Merge** - FFmpeg loops video to match audio duration and merges them
-7. **Download** - Final music video ready for social media
+3. **Browser Extraction** - Web Audio API extracts the selected segment (~2-5MB)
+4. **Upload Segment** - Only the 15-second segment is uploaded to backend
+5. **Customize Style** - Choose from 19 subjects, 6 visual styles, 8 camera movements, 6 lighting styles
+6. **AI Enhancement** - Gemini 2.5 Flash enhances the prompt with cinematic details
+7. **Generate Video** - Veo 3.0 creates 9:16 portrait video (2-5 minutes processing)
+8. **Process & Merge** - FFmpeg loops video to match audio duration and merges them
+9. **Download** - Final music video ready for social media
 
 ## Technologies Used
 
