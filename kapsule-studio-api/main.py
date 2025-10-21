@@ -28,9 +28,16 @@ app = FastAPI(
 )
 
 # Configure CORS
+allowed_origins = [
+    "https://studio.kapsule.co",
+    "https://mellifluous-khapse-3c8419.netlify.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[config.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
