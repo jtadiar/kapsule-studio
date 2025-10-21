@@ -167,58 +167,51 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
-      // Step 1: Request signed upload URL from backend
-      const urlResponse = await fetch(`${API_URL}/api/upload-url`, {
+      // Step 1: Extract 15-second segment in browser using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const arrayBuffer = await uploadedFile.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      // Calculate sample positions for the segment
+      const sampleRate = audioBuffer.sampleRate;
+      const startSample = Math.floor(segmentStart * sampleRate);
+      const endSample = Math.floor(segmentEnd * sampleRate);
+      const segmentLength = endSample - startSample;
+      
+      // Create a new buffer for the segment
+      const segmentBuffer = audioContext.createBuffer(
+        audioBuffer.numberOfChannels,
+        segmentLength,
+        sampleRate
+      );
+      
+      // Copy the segment data
+      for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+        const sourceData = audioBuffer.getChannelData(channel);
+        const segmentData = segmentBuffer.getChannelData(channel);
+        for (let i = 0; i < segmentLength; i++) {
+          segmentData[i] = sourceData[startSample + i];
+        }
+      }
+      
+      // Convert the segment buffer to WAV blob
+      const segmentBlob = await audioBufferToWav(segmentBuffer);
+      
+      // Step 2: Upload the extracted segment (much smaller file)
+      const formData = new FormData();
+      formData.append('file', segmentBlob, `segment_${uploadedFile.name}`);
+      
+      const response = await fetch(`${API_URL}/api/upload-audio`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filename: uploadedFile.name,
-          content_type: uploadedFile.type,
-          file_size: uploadedFile.size,
-        }),
+        body: formData,
       });
       
-      if (!urlResponse.ok) {
-        const error = await urlResponse.json();
-        throw new Error(error.detail || 'Failed to get upload URL');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Upload failed');
       }
       
-      const { upload_url, gcs_uri } = await urlResponse.json();
-      
-      // Step 2: Upload file directly to GCS using signed URL
-      const uploadResponse = await fetch(upload_url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': uploadedFile.type,
-        },
-        body: uploadedFile,
-      });
-      
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to storage');
-      }
-      
-      // Step 3: Notify backend to process the uploaded file (extract segment if needed)
-      const processResponse = await fetch(`${API_URL}/api/process-upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          gcs_uri: gcs_uri,
-          start_time: segmentStart,
-          end_time: segmentEnd,
-        }),
-      });
-      
-      if (!processResponse.ok) {
-        const error = await processResponse.json();
-        throw new Error(error.detail || 'Failed to process upload');
-      }
-      
-      const data = await processResponse.json();
+      const data = await response.json();
       
       setIsUploading(false);
       setUploadSuccess(true);
@@ -234,6 +227,63 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
       console.error('Upload error:', error);
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  };
+  
+  // Helper function to convert AudioBuffer to WAV Blob
+  const audioBufferToWav = (buffer: AudioBuffer): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const numberOfChannels = buffer.numberOfChannels;
+      const sampleRate = buffer.sampleRate;
+      const format = 1; // PCM
+      const bitDepth = 16;
+      
+      const bytesPerSample = bitDepth / 8;
+      const blockAlign = numberOfChannels * bytesPerSample;
+      
+      const data = [];
+      for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          const sample = buffer.getChannelData(channel)[i];
+          const intSample = Math.max(-1, Math.min(1, sample));
+          data.push(intSample < 0 ? intSample * 0x8000 : intSample * 0x7FFF);
+        }
+      }
+      
+      const dataLength = data.length * bytesPerSample;
+      const bufferLength = 44 + dataLength;
+      const arrayBuffer = new ArrayBuffer(bufferLength);
+      const view = new DataView(arrayBuffer);
+      
+      // WAV header
+      const writeString = (offset: number, string: string) => {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      };
+      
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + dataLength, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, format, true);
+      view.setUint16(22, numberOfChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitDepth, true);
+      writeString(36, 'data');
+      view.setUint32(40, dataLength, true);
+      
+      // Write audio data
+      let offset = 44;
+      for (let i = 0; i < data.length; i++) {
+        view.setInt16(offset, data[i], true);
+        offset += 2;
+      }
+      
+      resolve(new Blob([arrayBuffer], { type: 'audio/wav' }));
+    });
   };
   
   const formatBytes = (bytes: number, decimals = 2) => {
