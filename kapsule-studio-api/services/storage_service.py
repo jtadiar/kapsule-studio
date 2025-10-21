@@ -60,7 +60,7 @@ class StorageService:
     
     def upload_video(self, local_path: str, filename: str) -> str:
         """
-        Upload video file to GCS video folder.
+        Upload video file to GCS video folder with proper content-type for mobile compatibility.
         
         Args:
             local_path: Local path to video file
@@ -79,11 +79,21 @@ class StorageService:
         
         blob = self.bucket.blob(blob_path)
         
-        # Upload file
-        blob.upload_from_filename(local_path)
+        # Set proper content-type for mobile compatibility
+        blob.content_type = "video/mp4"
+        
+        # Upload file with proper metadata
+        blob.upload_from_filename(
+            local_path,
+            content_type="video/mp4"
+        )
+        
+        # Set CORS-friendly cache control
+        blob.cache_control = "public, max-age=3600"
+        blob.patch()
         
         gcs_uri = f"gs://{config.GCS_BUCKET_NAME}/{blob_path}"
-        logger.info(f"Uploaded video file to: {gcs_uri}")
+        logger.info(f"Uploaded video file to: {gcs_uri} with content-type: video/mp4")
         
         return gcs_uri
     
@@ -122,19 +132,19 @@ class StorageService:
     
     def get_signed_url(self, gcs_url: str, expiration: int = 3600) -> str:
         """
-        Generate a public URL for accessing a GCS object.
+        Generate a signed URL for accessing a GCS object.
         
         Args:
             gcs_url: GCS URI (gs://bucket/path/to/file)
-            expiration: URL expiration time in seconds (not used for public URLs)
+            expiration: URL expiration time in seconds (default: 1 hour)
             
         Returns:
-            Publicly accessible URL
+            Signed URL with authentication parameters
         """
         if self.client is None:
             # Mock mode - return a mock URL
             mock_url = f"https://storage.googleapis.com/{config.GCS_BUCKET_NAME}/video/mock_video.mp4"
-            logger.info(f"MOCK: Would generate public URL: {mock_url}")
+            logger.info(f"MOCK: Would generate signed URL: {mock_url}")
             return mock_url
         
         # Parse GCS URL
@@ -148,11 +158,21 @@ class StorageService:
         
         bucket_name, blob_path = parts
         
-        # Since the bucket has public access, use the public URL
-        # This works with user credentials (no private key needed)
-        public_url = f"https://storage.googleapis.com/{bucket_name}/{blob_path}"
+        # Get the blob and generate signed URL
+        bucket = self.client.bucket(bucket_name)
+        blob = bucket.blob(blob_path)
         
-        logger.info(f"Generated public URL for {blob_path}")
+        # Generate signed URL with expiration
+        from datetime import datetime, timedelta
+        expiration_time = datetime.utcnow() + timedelta(seconds=expiration)
         
-        return public_url
+        signed_url = blob.generate_signed_url(
+            expiration=expiration_time,
+            method="GET",
+            version="v4"
+        )
+        
+        logger.info(f"Generated signed URL for {blob_path} (expires in {expiration}s)")
+        
+        return signed_url
 
