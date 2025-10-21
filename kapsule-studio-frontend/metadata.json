@@ -1,0 +1,5 @@
+{
+  "name": "Kapsule Studio",
+  "description": "A modern, cinematic web app that lets users upload a track and generate creative prompts for Veo video generation.",
+  "requestFramePermissions": []
+}

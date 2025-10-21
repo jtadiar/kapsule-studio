@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv
+env/
+venv/
+.git/
+.gitignore
+.pytest_cache/
+*.log
+*.tmp
+.DS_Store
+README.md
+
+# Sensitive files
+*.json
+!requirements.txt
+gcp-key.json
+credentials.json

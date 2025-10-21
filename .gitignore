@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Node
+node_modules/
+dist/
+
+# Secrets
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!metadata.json
+gcp-key.json
+credentials.json
+
+# OS
+.DS_Store
+.cursor/
+
+# Logs
+*.log
+
