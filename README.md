@@ -6,28 +6,28 @@
 
 > Transform your music into stunning AI-generated videos using Google's Veo 3.0 and Gemini 2.5 Flash
 
-## 🎥 Demo
+## Live Demo
 
 - **Live Application:** [studio.kapsule.co](https://studio.kapsule.co)
 - **Backend API:** [kapsule-studio-api-qgkw6ysw4a-uc.a.run.app](https://kapsule-studio-api-qgkw6ysw4a-uc.a.run.app)
 - **Demo Video:** [Coming Soon - 3 minutes]
 
-## 📝 Project Summary
+## Project Summary
 
 Kapsule Studio is an AI-powered music video generator that transforms audio tracks into professional-quality music videos. Built for the Google AI Hackathon, it leverages cutting-edge AI models to create unique, customizable videos that match your music's vibe and style.
 
 ### Key Features
 
-- 🎵 **Audio Segment Selector** - Interactive timeline to select perfect 15-second clips
-- 🎨 **19 Visual Subjects** - From abstract visuals to performance-based content
-- 🎬 **8 Camera Movements** - Including quick cuts, tracking shots, and multi-angle coverage
-- ✨ **AI Prompt Enhancement** - Gemini 2.5 Flash intelligently enhances your creative vision
-- 🎥 **9:16 Portrait Videos** - Optimized for social media (TikTok, Instagram, YouTube Shorts)
-- 🔄 **Automatic Synchronization** - FFmpeg seamlessly merges audio with generated video
-- 🎲 **Randomize Options** - Explore creative possibilities with one click
-- 👁️ **Prompt Preview** - See and edit AI-enhanced prompts before generation
+- **Audio Segment Selector** - Interactive timeline to select perfect 15-second clips
+- **19 Visual Subjects** - From abstract visuals to performance-based content
+- **8 Camera Movements** - Including quick cuts, tracking shots, and multi-angle coverage
+- **AI Prompt Enhancement** - Gemini 2.5 Flash intelligently enhances your creative vision
+- **9:16 Portrait Videos** - Optimized for social media (TikTok, Instagram, YouTube Shorts)
+- **Automatic Synchronization** - FFmpeg seamlessly merges audio with generated video
+- **Randomize Options** - Explore creative possibilities with one click
+- **Prompt Preview** - See and edit AI-enhanced prompts before generation
 
-## 🏗️ Architecture
+## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system diagram.
 
