@@ -18,6 +18,8 @@ const PROCESSING_MESSAGES = [
 
 export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoUrl, errorMessage }) => {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [videoLoadError, setVideoLoadError] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   // Rotate through processing messages
   useEffect(() => {
@@ -32,6 +34,15 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
 
     return () => clearInterval(interval);
   }, [isProcessing]);
+
+  // Reset error state when videoUrl changes
+  useEffect(() => {
+    if (videoUrl) {
+      setVideoLoadError(false);
+      setDebugInfo(`Video URL: ${videoUrl.substring(0, 50)}...`);
+      console.log('Full video URL:', videoUrl);
+    }
+  }, [videoUrl]);
 
   const handleDownload = async () => {
     if (!videoUrl) return;
@@ -80,19 +91,38 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
             <p className="text-sm text-red-500 text-center">{errorMessage}</p>
           </div>
         ) : videoUrl ? (
-          <video 
-            src={videoUrl}
-            controls
-            playsInline
-            preload="metadata"
-            crossOrigin="anonymous"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              console.error('Video load error:', e);
-            }}
-          >
-            Your browser does not support the video tag.
-          </video>
+          videoLoadError ? (
+            <div className="w-full h-full bg-yellow-50 flex flex-col items-center justify-center p-4">
+              <p className="text-yellow-700 font-medium mb-2">⚠️ Video Load Error</p>
+              <p className="text-xs text-yellow-600 text-center mb-3">{debugInfo}</p>
+              <button
+                onClick={() => window.open(videoUrl, '_blank')}
+                className="bg-[#FF383A] text-white px-4 py-2 rounded-lg text-sm"
+              >
+                Open in New Tab
+              </button>
+            </div>
+          ) : (
+            <video 
+              src={videoUrl}
+              controls
+              playsInline
+              preload="metadata"
+              crossOrigin="anonymous"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error('Video load error:', e);
+                console.error('Video URL:', videoUrl);
+                setVideoLoadError(true);
+                setDebugInfo(`Failed to load video. Try opening in new tab.`);
+              }}
+              onLoadedMetadata={() => {
+                console.log('Video metadata loaded successfully');
+              }}
+            >
+              Your browser does not support the video tag.
+            </video>
+          )
         ) : (
           <img 
             src="https://picsum.photos/seed/kapsule/506/900"
