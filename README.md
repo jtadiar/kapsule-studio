@@ -59,7 +59,7 @@ User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
 - **Firestore** - Job tracking and status management
 - **Secret Manager** - Secure credential management
 
-## 🚀 How It Works
+## How It Works
 
 1. **Upload Audio** - User uploads MP3/WAV/M4A file (min 15 seconds)
 2. **Select Segment** - Interactive timeline with draggable markers for 15-second selection
@@ -69,7 +69,7 @@ User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
 6. **Process & Merge** - FFmpeg loops video to match audio duration and merges them
 7. **Download** - Final music video ready for social media
 
-## 🎯 Technologies Used
+## Technologies Used
 
 ### Google AI Technologies
 - **Veo 3.0** (`veo-3.0-generate-001`) - State-of-the-art video generation
@@ -96,14 +96,14 @@ User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
   - Audio segment extraction
   - High-quality merging with proper codecs
 
-## 📊 Data Sources
+## Data Sources
 
 - **User-Uploaded Audio** - Local files (MP3, WAV, M4A)
 - **Cloud Storage** - Generated videos and processed audio
 - **Firestore** - Job metadata, status, and timestamps
 - **No External APIs** - All processing happens within Google Cloud ecosystem
 
-## 💡 Key Learnings & Findings
+## Key Learnings & Findings
 
 ### Technical Discoveries
 
@@ -146,7 +146,7 @@ User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
 - **Netlify + Cloud Run** is a powerful combo for full-stack serverless
 - **CORS configuration** critical for cross-origin API calls
 
-## 📦 Repository Structure
+## Repository Structure
 
 ```
 kapsule-studio/
@@ -188,7 +188,7 @@ kapsule-studio/
 └── setup-gcp.sh                   # GCP setup automation
 ```
 
-## 🎬 Hackathon Category
+## Hackathon Category
 
 **AI/ML - Creative Tools**
 
@@ -199,7 +199,7 @@ This project demonstrates:
 - User-friendly interface
 - Scalable architecture
 
-## 🚀 Quick Start
+## Quick Start
 
 ### For Users
 
@@ -231,7 +231,7 @@ npm run dev
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Google Cloud** for providing the AI models and infrastructure
 - **Veo 3.0 Team** for the incredible video generation capabilities
