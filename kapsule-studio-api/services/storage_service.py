@@ -34,9 +34,15 @@ class StorageService:
         Returns:
             GCS URI (gs://bucket/audio/filename)
         """
+        # Sanitize filename: remove spaces and special characters for GCS compatibility
+        import re
+        sanitized_filename = re.sub(r'\s+', '_', original_filename)  # Replace spaces with underscores
+        sanitized_filename = re.sub(r'[^a-zA-Z0-9._-]', '', sanitized_filename)  # Remove special chars
+        sanitized_filename = re.sub(r'_+', '_', sanitized_filename)  # Collapse multiple underscores
+        
         # Generate unique filename
         unique_id = str(uuid.uuid4())
-        filename = f"{unique_id}_{original_filename}"
+        filename = f"{unique_id}_{sanitized_filename}"
         blob_path = f"{config.AUDIO_FOLDER}{filename}"
         
         if self.client is None:
