@@ -33,9 +33,32 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
     return () => clearInterval(interval);
   }, [isProcessing]);
 
-  const handleDownload = () => {
-    if (videoUrl) {
-      // Open video URL in new tab for download
+  const handleDownload = async () => {
+    if (!videoUrl) return;
+    
+    try {
+      // Detect if mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // For mobile: fetch and trigger download
+        const response = await fetch(videoUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `kapsule-video-${Date.now()}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // For desktop: open in new tab (existing behavior)
+        window.open(videoUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      // Fallback: open in new tab
       window.open(videoUrl, '_blank');
     }
   };
@@ -60,7 +83,13 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
           <video 
             src={videoUrl}
             controls
+            playsInline
+            preload="metadata"
+            crossOrigin="anonymous"
             className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error('Video load error:', e);
+            }}
           >
             Your browser does not support the video tag.
           </video>
