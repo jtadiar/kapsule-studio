@@ -31,11 +31,6 @@ Kapsule Studio is an AI-powered music video generator that transforms audio trac
 
 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system diagram.
 
-```
-User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
-                                                  ↓
-                                          Cloud Storage + Firestore
-```
 
 ### Tech Stack
 
