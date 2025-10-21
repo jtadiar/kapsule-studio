@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 
 interface VideoPreviewProps {
@@ -20,6 +20,8 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
   const [messageIndex, setMessageIndex] = useState(0);
   const [videoLoadError, setVideoLoadError] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
+  const [videoKey, setVideoKey] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Rotate through processing messages
   useEffect(() => {
@@ -35,12 +37,23 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
     return () => clearInterval(interval);
   }, [isProcessing]);
 
-  // Reset error state when videoUrl changes
+  // Reset error state and force video reload when videoUrl changes
   useEffect(() => {
     if (videoUrl) {
       setVideoLoadError(false);
       setDebugInfo(`Video URL: ${videoUrl.substring(0, 50)}...`);
       console.log('Full video URL:', videoUrl);
+      
+      // Force video element to reload by changing key
+      setVideoKey(prev => prev + 1);
+      
+      // On mobile Safari, sometimes we need to wait a moment for GCS headers to propagate
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && videoRef.current) {
+        setTimeout(() => {
+          videoRef.current?.load();
+        }, 500);
+      }
     }
   }, [videoUrl]);
 
@@ -104,6 +117,8 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
             </div>
           ) : (
             <video 
+              key={videoKey}
+              ref={videoRef}
               src={videoUrl}
               controls
               playsInline
@@ -118,6 +133,9 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ isProcessing, videoU
               }}
               onLoadedMetadata={() => {
                 console.log('Video metadata loaded successfully');
+              }}
+              onCanPlay={() => {
+                console.log('Video can play - ready for playback');
               }}
             >
               Your browser does not support the video tag.
