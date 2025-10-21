@@ -80,7 +80,10 @@ def merge_audio_video(video_path: str, audio_path: str, output_path: str) -> boo
                     video_bitrate='2M',
                     preset='fast',  # Fast encoding preset
                     crf=23,  # Quality setting
-                    **{'pix_fmt': 'yuv420p'}  # Ensure compatibility
+                    **{
+                        'pix_fmt': 'yuv420p',  # Ensure compatibility
+                        'movflags': '+faststart'  # Move moov atom to beginning for mobile Safari streaming
+                    }
                 )
                 .overwrite_output()
                 .run(capture_stdout=True, capture_stderr=True)
@@ -104,7 +107,10 @@ def merge_audio_video(video_path: str, audio_path: str, output_path: str) -> boo
                     video_bitrate='2M',
                     preset='fast',
                     crf=23,
-                    **{'pix_fmt': 'yuv420p'}
+                    **{
+                        'pix_fmt': 'yuv420p',
+                        'movflags': '+faststart'  # Move moov atom to beginning for mobile Safari streaming
+                    }
                 )
                 .overwrite_output()
                 .run(capture_stdout=True, capture_stderr=True)
