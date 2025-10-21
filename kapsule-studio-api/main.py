@@ -31,6 +31,7 @@ app = FastAPI(
 allowed_origins = [
     "https://studio.kapsule.co",
     "https://mellifluous-khapse-3c8419.netlify.app",
+    "https://kapsule-studio-875688451533.us-west1.run.app",  # AI Studio deployment
     "http://localhost:5173",
     "http://localhost:3000",
 ]
