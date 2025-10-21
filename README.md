@@ -1,10 +1,10 @@
-# Kapsule Studio - AI Music Video Generator
+# Kapsule Studio - AI Music Video Content Generator
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://studio.kapsule.co)
 [![Backend API](https://img.shields.io/badge/API-deployed-blue)](https://kapsule-studio-api-qgkw6ysw4a-uc.a.run.app)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> Transform your music into stunning AI-generated videos using Google's Veo 3.0 and Gemini 2.5 Flash
+> Transform your music into stunning AI-generated video content using Google's Veo 3.0 and Gemini 2.5 Flash
 
 ## Live Demo
 
