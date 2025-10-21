@@ -204,6 +204,8 @@ Visit [studio.kapsule.co](https://studio.kapsule.co) and start creating!
 
 ### For Developers
 
+**Note:** To use Kapsule Studio, you'll need to deploy your own backend and frontend instances with your own GCP resources. The live demo at [studio.kapsule.co](https://studio.kapsule.co) is for demonstration purposes only.
+
 See [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for complete setup instructions.
 
 **Quick local setup:**
