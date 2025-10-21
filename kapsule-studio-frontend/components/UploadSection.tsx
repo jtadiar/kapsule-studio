@@ -255,9 +255,15 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
       // Convert the segment buffer to WAV blob
       const segmentBlob = await audioBufferToWav(segmentBuffer);
       
+      // Sanitize filename: remove spaces and special characters for GCS compatibility
+      const sanitizedName = uploadedFile.name
+        .replace(/\s+/g, '_')           // Replace spaces with underscores
+        .replace(/[^a-zA-Z0-9._-]/g, '') // Remove special characters except . _ -
+        .replace(/_+/g, '_');            // Collapse multiple underscores
+      
       // Step 2: Upload the extracted segment (much smaller file)
       const formData = new FormData();
-      formData.append('file', segmentBlob, `segment_${uploadedFile.name}`);
+      formData.append('file', segmentBlob, `segment_${sanitizedName}`);
       
       const response = await fetch(`${API_URL}/api/upload-audio`, {
         method: 'POST',
