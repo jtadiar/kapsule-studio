@@ -29,7 +29,7 @@ Kapsule Studio is an AI-powered music video generator that transforms audio trac
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system diagram.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system diagram.
 
 ```
 User → Netlify (Frontend) → Cloud Run (Backend) → Veo 3.0 + Gemini 2.5
@@ -209,7 +209,7 @@ Visit [studio.kapsule.co](https://studio.kapsule.co) and start creating!
 
 ### For Developers
 
-See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for complete setup instructions.
+See [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for complete setup instructions.
 
 **Quick local setup:**
 
