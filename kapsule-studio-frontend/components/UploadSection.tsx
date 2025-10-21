@@ -127,6 +127,38 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
     setIsDragging(true);
   };
 
+  const handleMarkerTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  // Timeline click handler for mobile
+  const handleTimelineClick = (e: React.MouseEvent | React.TouchEvent) => {
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+
+    let clientX: number;
+    if ('touches' in e) {
+      // Touch event
+      clientX = e.touches[0].clientX;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+    }
+
+    const rect = timeline.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percentage = x / rect.width;
+    const newStart = percentage * audioDuration;
+
+    // Constrain to valid range
+    const maxStart = audioDuration - 15;
+    const constrainedStart = Math.max(0, Math.min(newStart, maxStart));
+    
+    setSegmentStart(constrainedStart);
+    setSegmentEnd(constrainedStart + 15);
+  };
+
   useEffect(() => {
     if (!isDragging || !timelineRef.current) return;
 
@@ -147,16 +179,42 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
       setSegmentEnd(constrainedStart + 15);
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const timeline = timelineRef.current;
+      if (!timeline) return;
+
+      const rect = timeline.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, rect.width));
+      const percentage = x / rect.width;
+      const newStart = percentage * audioDuration;
+
+      // Constrain to valid range
+      const maxStart = audioDuration - 15;
+      const constrainedStart = Math.max(0, Math.min(newStart, maxStart));
+      
+      setSegmentStart(constrainedStart);
+      setSegmentEnd(constrainedStart + 15);
+    };
+
     const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchEnd = () => {
       setIsDragging(false);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragging, audioDuration]);
   
@@ -371,7 +429,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
               <div className="flex-1">
                 <div 
                   ref={timelineRef}
-                  className="relative h-16 bg-gray-300 rounded-lg overflow-visible"
+                  className="relative h-16 bg-gray-300 rounded-lg overflow-visible cursor-pointer"
+                  onClick={handleTimelineClick}
                 >
                   {/* Draggable 15-second segment window */}
                   <div 
@@ -381,6 +440,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ uploadedFile, setU
                       width: `${(15 / audioDuration) * 100}%`
                     }}
                     onMouseDown={handleMarkerMouseDown}
+                    onTouchStart={handleMarkerTouchStart}
                     title="Drag to reposition 15-second segment"
                   />
                   
