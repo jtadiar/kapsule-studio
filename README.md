@@ -1,4 +1,4 @@
-# Kapsule Studio - AI Music Video Content Generator
+# Kapsule Studio - Music Video Content Generator
 
 > Transform your music into stunning AI-generated video content using Google's Veo 3.0 and Gemini 2.5 Flash
 
