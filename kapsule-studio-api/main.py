@@ -134,11 +134,11 @@ async def process_video_generation(job_id: str, request_data: dict):
         # Step 1: Update status to processing
         firestore_service.update_job_status(job_id, "processing")
         
-        # Step 2: Generate video with Veo
+        # Step 2: Generate video with Veo (always use 8s - max supported)
         logger.info(f"[Job {job_id}] Calling Veo service...")
         veo_video_path = veo_service.generate_video(
             prompt=request_data["prompt"],
-            duration=request_data["duration"],
+            duration="8s",  # Always use 8s (max supported by Veo), FFmpeg will loop to match audio
             job_id=job_id
         )
         temp_files.append(veo_video_path)

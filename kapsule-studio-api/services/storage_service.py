@@ -132,19 +132,22 @@ class StorageService:
     
     def get_signed_url(self, gcs_url: str, expiration: int = 3600) -> str:
         """
-        Generate a signed URL for accessing a GCS object.
+        Generate a public URL for accessing a GCS object.
+        
+        Note: Using public URLs since the bucket is public and Cloud Run
+        compute engine credentials don't support signed URL generation.
         
         Args:
             gcs_url: GCS URI (gs://bucket/path/to/file)
-            expiration: URL expiration time in seconds (default: 1 hour)
+            expiration: Not used for public URLs (kept for API compatibility)
             
         Returns:
-            Signed URL with authentication parameters
+            Public URL for accessing the file
         """
         if self.client is None:
             # Mock mode - return a mock URL
             mock_url = f"https://storage.googleapis.com/{config.GCS_BUCKET_NAME}/video/mock_video.mp4"
-            logger.info(f"MOCK: Would generate signed URL: {mock_url}")
+            logger.info(f"MOCK: Would generate public URL: {mock_url}")
             return mock_url
         
         # Parse GCS URL
@@ -158,21 +161,10 @@ class StorageService:
         
         bucket_name, blob_path = parts
         
-        # Get the blob and generate signed URL
-        bucket = self.client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
+        # Generate public URL (bucket is already public)
+        public_url = f"https://storage.googleapis.com/{bucket_name}/{blob_path}"
         
-        # Generate signed URL with expiration
-        from datetime import datetime, timedelta
-        expiration_time = datetime.utcnow() + timedelta(seconds=expiration)
+        logger.info(f"Generated public URL for {blob_path}")
         
-        signed_url = blob.generate_signed_url(
-            expiration=expiration_time,
-            method="GET",
-            version="v4"
-        )
-        
-        logger.info(f"Generated signed URL for {blob_path} (expires in {expiration}s)")
-        
-        return signed_url
+        return public_url
 

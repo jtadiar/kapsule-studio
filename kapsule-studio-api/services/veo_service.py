@@ -33,7 +33,7 @@ class VeoService:
         
         Args:
             prompt: Text prompt for video generation
-            duration: Video duration ("8s" or "15s")
+            duration: Video duration (must be "4s", "6s", or "8s" - Veo supported durations)
             job_id: Job ID for logging and temp file naming
             
         Returns:
