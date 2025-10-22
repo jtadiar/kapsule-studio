@@ -94,8 +94,9 @@ class StorageService:
             content_type="video/mp4"
         )
         
-        # Set CORS-friendly cache control
+        # Set CORS-friendly cache control and inline disposition for mobile Safari
         blob.cache_control = "public, max-age=3600"
+        blob.content_disposition = "inline"
         blob.patch()
         
         gcs_uri = f"gs://{config.GCS_BUCKET_NAME}/{blob_path}"
