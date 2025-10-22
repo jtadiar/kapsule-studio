@@ -6,31 +6,8 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
 
 ## Architecture Diagram
 
-```
-┌─────────────┐
-│   User      │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────────────────────┐
-│  Netlify: Frontend (Static)     │
-│  (React + Vite + Web Audio API) │
-│  studio.kapsule.co              │
-│  - Extracts 15s segment         │
-└────────┬────────────────────────┘
-         │ HTTP/REST (2-5MB segment)
-         ▼
-┌─────────────────────────────────┐
-│  Cloud Run: Backend API Service │
-│  (FastAPI + Python + FFmpeg)    │
-│  Port: 8080                     │
-└─────┬───────┬───────┬──────────┘
-      │       │       │
-      ▼       ▼       ▼
-   ┌────┐  ┌────┐  ┌────────┐
-   │GCS │  │Veo │  │Firestore│
-   └────┘  └────┘  └────────┘
-```
+
+![Architecture Diagram](architecture-diagram.png)
 
 ## Technology Stack
 
