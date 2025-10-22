@@ -7,7 +7,8 @@ Kapsule Studio is a serverless AI music video generator deployed on Google Cloud
 ## Architecture Diagram
 
 
-![Architecture Diagram](architecture-diagram.png)
+![Architecture Diagram](https://raw.githubusercontent.com/jtadiar/kapsule-studio/main/architecture-diagram.png)
+
 
 ## Technology Stack
 
